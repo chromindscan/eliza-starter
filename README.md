@@ -61,7 +61,11 @@ pnpm i && pnpm start
    XAI_API_KEY="your-api-key-here"
    ```
 
+3. Ensure postgres is installed and running
+   - https://www.bytebase.com/blog/how-to-install-local-postgres-on-mac-ubuntu-centos-windows/
+
 ### Quick Start
+
 
 1. Build and start Chromia node:
    ```bash
