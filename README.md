@@ -49,3 +49,27 @@ cp .env.example .env
 ```bash
 pnpm i && pnpm start
 ```
+
+## Store agent data on Chromia on-chain database
+
+### Prerequisites
+
+1. Install Chromia CLI (chr) from [Chromia Documentation](https://docs.chromia.com/intro/installation/cli-installation)
+
+2. Update your `.env` file:
+   ```
+   XAI_API_KEY="your-api-key-here"
+   ```
+
+### Quick Start
+
+1. Build and start Chromia node:
+   ```bash
+   chr build
+   chr node start --wipe (Clean Database)
+   ```
+
+2. Run Eliza with Chromia storage:
+   ```bash
+   pnpm start --characters="/path/to/your/character.json"
+   ```

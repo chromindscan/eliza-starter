@@ -1,0 +1,25 @@
+// Define the agent log entity
+module;
+
+entity agent_log {
+    key id: text;
+    message: text;
+}
+
+// Operation to create a new agent log
+operation create_agent_log(id: text, message: text) {
+    create agent_log(
+        id,
+        message
+    );
+}
+
+// Query to get agent log by id
+query get_agent_log(log_id: text) {
+    return agent_log @? { .id == log_id };
+}
+
+// Query to get all agent logs
+query get_all_agent_logs() {
+    return agent_log @* {} ( .id, .message );
+}

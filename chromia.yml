@@ -1,0 +1,3 @@
+blockchains:
+  eliza_starter_chromia:
+    module: main

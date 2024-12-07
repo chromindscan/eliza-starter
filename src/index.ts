@@ -33,9 +33,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { character } from "./character.ts";
 import type { DirectClient } from "@ai16z/client-direct";
+import { ChromiaDB, createAgentLog, clientUrl as chromiaUrl, blockchainIid as chromiaBlockchainIid, signatureProvider as chromiaSignatureProvider, testChromiaLogs } from "/Users/prem/Desktop/Chromaway/eliza-starter/src/services/chromia.ts";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
+
+let chromiaDB: ChromiaDB;
 
 export const wait = (minTime: number = 1000, maxTime: number = 3000) => {
   const waitTime =
@@ -279,6 +282,13 @@ async function startAgent(character: Character, directClient: DirectClient) {
 }
 
 const startAgents = async () => {
+  chromiaDB = new ChromiaDB({
+    clientUrl: chromiaUrl,
+    blockchainIid: chromiaBlockchainIid,
+    signatureProvider: chromiaSignatureProvider
+  });
+  await chromiaDB.init();
+
   const directClient = await DirectClientInterface.start();
   const args = parseArguments();
 
@@ -300,10 +310,14 @@ const startAgents = async () => {
 
   function chat() {
     const agentId = characters[0].name ?? "Agent";
+    
+    
+    testChromiaLogs(chromiaDB).catch(console.error);
+    
     rl.question("You: ", async (input) => {
       await handleUserInput(input, agentId);
       if (input.toLowerCase() !== "exit") {
-        chat(); // Loop back to ask another question
+        chat();
       }
     });
   }
@@ -327,7 +341,7 @@ rl.on("SIGINT", () => {
   process.exit(0);
 });
 
-async function handleUserInput(input, agentId) {
+async function handleUserInput(input: string, agentId: string) {
   if (input.toLowerCase() === "exit") {
     rl.close();
     process.exit(0);
@@ -335,8 +349,9 @@ async function handleUserInput(input, agentId) {
   }
 
   try {
-    const serverPort = parseInt(settings.SERVER_PORT || "3000");
+    await createAgentLog(chromiaDB, `User: ${input}`);
 
+    const serverPort = parseInt(settings.SERVER_PORT || "3000");
     const response = await fetch(
       `http://localhost:${serverPort}/${agentId}/message`,
       {
@@ -351,8 +366,13 @@ async function handleUserInput(input, agentId) {
     );
 
     const data = await response.json();
-    data.forEach((message) => console.log(`${"Agent"}: ${message.text}`));
+    
+    for (const message of data) {
+      console.log(`${"Agent"}: ${message.text}`);
+      await createAgentLog(chromiaDB, `Agent: ${message.text}`);
+    }
   } catch (error) {
-    console.error("Error fetching response:", error);
+    console.error("Error:", error);
+    await createAgentLog(chromiaDB, `Error: ${error.message}`);
   }
 }
